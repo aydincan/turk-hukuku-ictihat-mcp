@@ -1,0 +1,27 @@
+[project]
+name = "turk-hukuku-ictihat-mcp"
+version = "0.1.0"
+description = "Türk yargı kararlarını (UYAP Emsal — Yargıtay/Bölge Adliye/ilk derece) yapay zekâ araçlarına açan MCP sunucusu."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Aydın Can Polatkan" }]
+keywords = ["mcp", "turkish-law", "ictihat", "yargitay", "uyap", "case-law", "llm"]
+dependencies = [
+    "mcp>=1.2.0",
+    "httpx>=0.27",
+]
+
+[project.scripts]
+turk-hukuku-ictihat = "turk_hukuku_ictihat.server:main"
+
+[project.urls]
+Homepage = "https://github.com/aydincan/turk-hukuku-ictihat-mcp"
+Issues = "https://github.com/aydincan/turk-hukuku-ictihat-mcp/issues"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["turk_hukuku_ictihat"]
