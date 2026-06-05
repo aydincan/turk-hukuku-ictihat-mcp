@@ -3,6 +3,7 @@
 Türk yargı kararlarını resmî kaynaktan arar ve getirir:
   - **adli yargı** (Yargıtay + Bölge Adliye + ilk derece) → UYAP Emsal
   - **idari yargı** (Danıştay) → Danıştay Karar Arama
+  - **anayasa yargısı** (AYM bireysel başvuru) → Kararlar Bilgi Bankası
 
 Amaç: model bir karara atıf yaparken künyeyi (mahkeme, daire, esas/karar no, tarih)
 **hafızadan değil resmî kaynaktan** alsın — sahte karar numarası üretmesin.
@@ -14,11 +15,11 @@ from __future__ import annotations
 
 from mcp.server.fastmcp import FastMCP
 
-from . import danistay, uyap
+from . import anayasa, danistay, uyap
 
 mcp = FastMCP("turk-hukuku-ictihat")
 
-_KAYNAK = {"adli": uyap, "idari": danistay}
+_KAYNAK = {"adli": uyap, "idari": danistay, "anayasa": anayasa}
 
 
 def _coz(mahkeme: str):
@@ -27,8 +28,11 @@ def _coz(mahkeme: str):
         m = "adli"
     elif m in ("danıştay", "danistay", "idare"):
         m = "idari"
+    elif m in ("aym", "anayasa mahkemesi", "bireysel", "bireysel başvuru"):
+        m = "anayasa"
     if m not in _KAYNAK:
-        raise ValueError("mahkeme yalnızca 'adli' (Yargıtay/BAM) ya da 'idari' (Danıştay) olabilir.")
+        raise ValueError("mahkeme yalnızca 'adli' (Yargıtay/BAM), 'idari' (Danıştay) "
+                         "ya da 'anayasa' (AYM bireysel başvuru) olabilir.")
     return m, _KAYNAK[m]
 
 
@@ -41,8 +45,8 @@ def ictihat_ara(ifade: str, mahkeme: str = "adli", adet: int = 10, sayfa: int = 
     bunları aynen kullan, uydurma. Tam metin için sonuçtaki `id` ile aynı `mahkeme`
     değerini `karar_getir`'e geçir.
 
-    mahkeme: "adli" (Yargıtay + Bölge Adliye + ilk derece, UYAP Emsal) ya da
-             "idari" (Danıştay). Varsayılan "adli".
+    mahkeme: "adli" (Yargıtay + Bölge Adliye + ilk derece, UYAP Emsal — varsayılan),
+             "idari" (Danıştay) ya da "anayasa" (AYM bireysel başvuru).
     adet: en çok kaç sonuç (1-50). sayfa: sayfalama (1'den başlar).
     """
     m, istemci = _coz(mahkeme)
@@ -57,7 +61,7 @@ def karar_getir(karar_id: str, mahkeme: str = "adli") -> dict:
 
     Dönen `metin` kararın künyesi + gerekçesi + hükmüdür. Metni ve künyeyi aynen
     aktar; esas/karar numarasını ve tarihi değiştirme. `mahkeme`, aramada kullandığın
-    değerle aynı olmalı ("adli" → UYAP Emsal, "idari" → Danıştay).
+    değerle aynı olmalı ("adli" → UYAP Emsal, "idari" → Danıştay, "anayasa" → AYM).
     """
     m, istemci = _coz(mahkeme)
     sonuc = istemci.karar(karar_id)

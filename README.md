@@ -1,8 +1,9 @@
 # turk-hukuku-ictihat-mcp
 
 Türk **yargı kararlarını** resmî kaynaktan yapay zekâ araçlarına açan bir **MCP sunucusu**:
-**adli yargı** ([UYAP Emsal](https://emsal.uyap.gov.tr) — Yargıtay/Bölge Adliye/ilk derece) ve
-**idari yargı** ([Danıştay Karar Arama](https://karararama.danistay.gov.tr)).
+**adli yargı** ([UYAP Emsal](https://emsal.uyap.gov.tr) — Yargıtay/Bölge Adliye/ilk derece),
+**idari yargı** ([Danıştay](https://karararama.danistay.gov.tr)) ve **anayasa yargısı**
+([AYM Bireysel Başvuru](https://kararlarbilgibankasi.anayasa.gov.tr)).
 
 Amaç tek cümle: model bir karara atıf yaparken künyeyi (**mahkeme, daire, esas/karar no,
 tarih**) hafızasından değil **resmî kaynaktan** alsın. UYAP Emsal künyeyi yapısal döndürür;
@@ -21,13 +22,13 @@ böylece model künye uydurmaz, **sahte karar numarası üretmez.**
 | `ictihat_ara(ifade, mahkeme, adet, sayfa)` | Karar arar; künye + atıf + `id` döndürür |
 | `karar_getir(karar_id, mahkeme)` | Bir kararın resmî **tam** metni (künye + gerekçe + hüküm) |
 
-`mahkeme` iki değer alır: **`adli`** (Yargıtay + Bölge Adliye + ilk derece — UYAP Emsal,
-varsayılan) ya da **`idari`** (Danıştay). `karar_getir`'e aramada kullandığın `mahkeme`
-değerini aynen geçir.
+`mahkeme` üç değer alır: **`adli`** (Yargıtay + Bölge Adliye + ilk derece — UYAP Emsal,
+varsayılan), **`idari`** (Danıştay) ya da **`anayasa`** (AYM bireysel başvuru).
+`karar_getir`'e aramada kullandığın `mahkeme` değerini aynen geçir.
 
 Tipik akış: `ictihat_ara("imar planı iptal", mahkeme="idari")` → sonuçtan bir `id` seç →
 `karar_getir(id, mahkeme="idari")` → kararın tam metni. Her sonuç hazır bir `atif` taşır:
-*"Danıştay 6. Daire, E.2023/1084 K.2025/10046, T.17.12.2025"*.
+*"Danıştay 6. Daire, E.2023/1084 K.2025/10046"* · *"AYM, B. No: 2020/36883, K.T. 16/12/2025"*.
 
 ## Kapsam
 
@@ -35,20 +36,23 @@ Tipik akış: `ictihat_ara("imar planı iptal", mahkeme="idari")` → sonuçtan 
   mahkeme kararları (UYAP Emsal — 800.000+ karar).
 - **İdari yargı** (`mahkeme="idari"`): Danıştay kararları (karararama.danistay.gov.tr —
   390.000+ doküman).
-- **Planlanan:** Anayasa Mahkemesi (bireysel başvuru + norm denetimi). Bu sistem ayrı bir
-  bilgi bankası altyapısı kullandığından sonraki sürümde eklenecektir.
+- **Anayasa yargısı** (`mahkeme="anayasa"`): AYM bireysel başvuru kararları
+  (kararlarbilgibankasi.anayasa.gov.tr).
+- **Planlanan:** AYM norm denetimi (iptal/itiraz) kararları.
 
 ## Nasıl çalışır
 
-Her iki kaynak da bir arama + bir belge uç noktası sunar:
+Her kaynak bir arama + bir belge uç noktası sunar:
 
 ```
-UYAP Emsal : POST /aramalist (aranan)                 + GET /getDokuman?id
-Danıştay   : POST /aramalist (andKelimeler[])          + GET /getDokuman?id&arananKelime
+UYAP Emsal : POST /aramalist (aranan)               + GET /getDokuman?id
+Danıştay   : POST /aramalist (andKelimeler[])        + GET /getDokuman?id&arananKelime
+AYM        : GET  /Ara?KelimeAra[]= (HTML)           + GET /BB/<yıl>/<no> (HTML)
 ```
 
 Sunucu aramayı yapar, künyeleri yapısal döndürür ve metni okunur düz metne çevirir
-(Danıştay metni iç içe HTML kodlamasından arındırılır). Tamamen yereldir; veri toplanmaz.
+(Danıştay iç içe HTML kodlamasından, AYM Word-export gövdesinden arındırılır). Tamamen
+yereldir; veri toplanmaz.
 
 ## Kurulum
 
