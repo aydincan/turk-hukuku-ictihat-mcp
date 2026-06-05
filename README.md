@@ -1,7 +1,8 @@
 # turk-hukuku-ictihat-mcp
 
-Türk **yargı kararlarını** resmî kaynaktan ([UYAP Emsal Karar](https://emsal.uyap.gov.tr) —
-Adalet Bakanlığı) yapay zekâ araçlarına açan bir **MCP sunucusu**.
+Türk **yargı kararlarını** resmî kaynaktan yapay zekâ araçlarına açan bir **MCP sunucusu**:
+**adli yargı** ([UYAP Emsal](https://emsal.uyap.gov.tr) — Yargıtay/Bölge Adliye/ilk derece) ve
+**idari yargı** ([Danıştay Karar Arama](https://karararama.danistay.gov.tr)).
 
 Amaç tek cümle: model bir karara atıf yaparken künyeyi (**mahkeme, daire, esas/karar no,
 tarih**) hafızasından değil **resmî kaynaktan** alsın. UYAP Emsal künyeyi yapısal döndürür;
@@ -17,31 +18,37 @@ böylece model künye uydurmaz, **sahte karar numarası üretmez.**
 
 | Tool | İşlev |
 |------|-------|
-| `ictihat_ara(ifade, adet, sayfa)` | Karar arar; künye + atıf + `id` döndürür |
-| `karar_getir(karar_id)` | Bir kararın resmî **tam** metni (künye + gerekçe + hüküm) |
+| `ictihat_ara(ifade, mahkeme, adet, sayfa)` | Karar arar; künye + atıf + `id` döndürür |
+| `karar_getir(karar_id, mahkeme)` | Bir kararın resmî **tam** metni (künye + gerekçe + hüküm) |
 
-Tipik akış: `ictihat_ara("kira sözleşmesi tahliye")` → sonuçtan bir `id` seç →
-`karar_getir(id)` → kararın tam metni. Her sonuç hazır bir `atif` dizesi taşır:
-*"İstanbul BAM 1. Hukuk Dairesi, E.2019/1405 K.2019/1934, T.30.12.2019"*.
+`mahkeme` iki değer alır: **`adli`** (Yargıtay + Bölge Adliye + ilk derece — UYAP Emsal,
+varsayılan) ya da **`idari`** (Danıştay). `karar_getir`'e aramada kullandığın `mahkeme`
+değerini aynen geçir.
+
+Tipik akış: `ictihat_ara("imar planı iptal", mahkeme="idari")` → sonuçtan bir `id` seç →
+`karar_getir(id, mahkeme="idari")` → kararın tam metni. Her sonuç hazır bir `atif` taşır:
+*"Danıştay 6. Daire, E.2023/1084 K.2025/10046, T.17.12.2025"*.
 
 ## Kapsam
 
-- **Adli yargı:** Yargıtay, Bölge Adliye Mahkemeleri ve ilk derece mahkeme kararları
-  (UYAP Emsal — 800.000+ karar).
-- **Planlanan:** Danıştay (idari yargı) ve Anayasa Mahkemesi kararları. Bu sistemler ayrı
-  arama altyapıları (ve kısmen CAPTCHA) kullandığından henüz kapsam dışıdır.
+- **Adli yargı** (`mahkeme="adli"`): Yargıtay, Bölge Adliye Mahkemeleri ve ilk derece
+  mahkeme kararları (UYAP Emsal — 800.000+ karar).
+- **İdari yargı** (`mahkeme="idari"`): Danıştay kararları (karararama.danistay.gov.tr —
+  390.000+ doküman).
+- **Planlanan:** Anayasa Mahkemesi (bireysel başvuru + norm denetimi). Bu sistem ayrı bir
+  bilgi bankası altyapısı kullandığından sonraki sürümde eklenecektir.
 
 ## Nasıl çalışır
 
-UYAP Emsal iki uç nokta sunar:
+Her iki kaynak da bir arama + bir belge uç noktası sunar:
 
 ```
-POST /aramalist     -> künye listesi (daire, esasNo, kararNo, kararTarihi, durum)
-GET  /getDokuman?id -> kararın tam metni
+UYAP Emsal : POST /aramalist (aranan)                 + GET /getDokuman?id
+Danıştay   : POST /aramalist (andKelimeler[])          + GET /getDokuman?id&arananKelime
 ```
 
-Sunucu aramayı yapar, künyeleri yapısal döndürür ve metni okunur düz metne çevirir.
-Tamamen yereldir; hiçbir veri toplanmaz.
+Sunucu aramayı yapar, künyeleri yapısal döndürür ve metni okunur düz metne çevirir
+(Danıştay metni iç içe HTML kodlamasından arındırılır). Tamamen yereldir; veri toplanmaz.
 
 ## Kurulum
 

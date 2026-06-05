@@ -1,7 +1,7 @@
 [project]
 name = "turk-hukuku-ictihat-mcp"
-version = "0.1.0"
-description = "Türk yargı kararlarını (UYAP Emsal — Yargıtay/Bölge Adliye/ilk derece) yapay zekâ araçlarına açan MCP sunucusu."
+version = "0.2.0"
+description = "Türk yargı kararlarını (UYAP Emsal: Yargıtay/Bölge Adliye/ilk derece + Danıştay) yapay zekâ araçlarına açan MCP sunucusu."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
