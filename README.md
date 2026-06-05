@@ -45,16 +45,13 @@ Tamamen yereldir; hiçbir veri toplanmaz.
 
 ## Kurulum
 
-```bash
-git clone https://github.com/aydincan/turk-hukuku-ictihat-mcp
-cd turk-hukuku-ictihat-mcp
-python3 -m venv .venv && .venv/bin/pip install -e .
-```
+[PyPI](https://pypi.org/project/turk-hukuku-ictihat-mcp/)'de yayımlıdır; [`uv`](https://docs.astral.sh/uv/)
+ile ayrı kurulum gerekmeden çalışır.
 
 ### Claude Code
 
 ```bash
-claude mcp add turk-hukuku-ictihat -- /tam/yol/.venv/bin/python -m turk_hukuku_ictihat
+claude mcp add turk-hukuku-ictihat -- uvx --from turk-hukuku-ictihat-mcp turk-hukuku-ictihat
 ```
 
 ### OpenAI Codex
@@ -63,8 +60,8 @@ claude mcp add turk-hukuku-ictihat -- /tam/yol/.venv/bin/python -m turk_hukuku_i
 
 ```toml
 [mcp_servers.turk-hukuku-ictihat]
-command = "/tam/yol/.venv/bin/python"
-args = ["-m", "turk_hukuku_ictihat"]
+command = "uvx"
+args = ["--from", "turk-hukuku-ictihat-mcp", "turk-hukuku-ictihat"]
 ```
 
 ### Gemini CLI
@@ -73,9 +70,16 @@ args = ["-m", "turk_hukuku_ictihat"]
 
 ```json
 "turk-hukuku-ictihat": {
-  "command": "/tam/yol/.venv/bin/python",
-  "args": ["-m", "turk_hukuku_ictihat"]
+  "command": "uvx",
+  "args": ["--from", "turk-hukuku-ictihat-mcp", "turk-hukuku-ictihat"]
 }
+```
+
+### Alternatif: pip
+
+```bash
+pip install turk-hukuku-ictihat-mcp
+# komut: turk-hukuku-ictihat   (ya da: python -m turk_hukuku_ictihat)
 ```
 
 İlgili: kanun/mevzuat metni için [`turk-hukuku-mevzuat-mcp`](https://github.com/aydincan/turk-hukuku-mevzuat-mcp).
