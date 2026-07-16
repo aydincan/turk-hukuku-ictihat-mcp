@@ -1,0 +1,24 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.aydincan/turk-hukuku-ictihat-mcp",
+  "title": "Türk Hukuku İçtihat",
+  "description": "Türk yargı kararlarını (Yargıtay/Bölge Adliye, Danıştay, AYM bireysel başvuru) resmî karar bankalarından yapay zekâ araçlarına açan MCP sunucusu. Turkish case law from official databases.",
+  "websiteUrl": "https://turk-hukuku.com/mcp/",
+  "repository": {
+    "url": "https://github.com/aydincan/turk-hukuku-ictihat-mcp",
+    "source": "github"
+  },
+  "version": "0.3.1",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "turk-hukuku-ictihat-mcp",
+      "version": "0.3.1",
+      "runtimeHint": "uvx",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}

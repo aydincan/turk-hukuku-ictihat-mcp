@@ -108,3 +108,5 @@ yalnızca kamuya açık resmî karar metnine erişimi kolaylaştıran bağımsı
 
 *Bu çalışma, ömrünü Türk yargısına adamış babam Hâkim Vahit Polatkan'ın ebedi anısına
 ithaf edilmiştir.*
+
+<!-- mcp-name: io.github.aydincan/turk-hukuku-ictihat-mcp -->
