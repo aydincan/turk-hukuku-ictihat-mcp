@@ -13,6 +13,8 @@ böylece model künye uydurmaz, **sahte karar numarası üretmez.**
 > kesinleşme durumunu ve somut olaya uygunluğunu siz değerlendirin. Bir kararın bağlayıcılığı
 > ve emsal değeri ayrı bir hukuki analiz gerektirir.
 
+Ayrıntı: [`SORUMLULUK-REDDI.md`](./SORUMLULUK-REDDI.md) · [`PRIVACY.md`](./PRIVACY.md) (veri toplama yok, telemetri yok; dış bağlantılar yalnızca resmî karar siteleri).
+
 ---
 
 ## Ne yapar
