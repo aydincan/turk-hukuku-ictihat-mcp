@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.aydincan/turk-hukuku-ictihat-mcp",
   "title": "Türk Hukuku İçtihat",
-  "description": "Türk yargı kararlarını (Yargıtay/Bölge Adliye, Danıştay, AYM bireysel başvuru) resmî karar bankalarından yapay zekâ araçlarına açan MCP sunucusu. Turkish case law from official databases.",
+  "description": "Türk yargı kararlarını (Yargıtay, Danıştay, AYM) resmî kaynaklardan yapay zekâya açan MCP sunucusu.",
   "websiteUrl": "https://turk-hukuku.com/mcp/",
   "repository": {
     "url": "https://github.com/aydincan/turk-hukuku-ictihat-mcp",
