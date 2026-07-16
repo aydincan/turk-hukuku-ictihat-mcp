@@ -1,6 +1,6 @@
 [project]
 name = "turk-hukuku-ictihat-mcp"
-version = "0.3.0"
+version = "0.3.1"
 description = "Türk yargı kararlarını (Yargıtay/Bölge Adliye + Danıştay + AYM bireysel başvuru) yapay zekâ araçlarına açan MCP sunucusu."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -16,7 +16,9 @@ dependencies = [
 turk-hukuku-ictihat = "turk_hukuku_ictihat.server:main"
 
 [project.urls]
-Homepage = "https://github.com/aydincan/turk-hukuku-ictihat-mcp"
+Homepage = "https://turk-hukuku.com"
+Documentation = "https://turk-hukuku.com/mcp/"
+Repository = "https://github.com/aydincan/turk-hukuku-ictihat-mcp"
 Issues = "https://github.com/aydincan/turk-hukuku-ictihat-mcp/issues"
 
 [build-system]
