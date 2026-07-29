@@ -13,6 +13,9 @@ Taşıma:      stdio (Claude Code / Codex / Gemini CLI ile uyumlu)
 """
 from __future__ import annotations
 
+from functools import partial
+
+import anyio
 from mcp.server.fastmcp import FastMCP
 
 from . import anayasa, danistay, uyap
@@ -36,8 +39,10 @@ def _coz(mahkeme: str):
     return m, _KAYNAK[m]
 
 
+# FastMCP senkron araçları event loop üzerinde çalıştırır; bloklayan HTTP çağrısı
+# tüm sunucuyu kilitler, bu yüzden işi worker thread'e taşıyoruz.
 @mcp.tool()
-def ictihat_ara(ifade: str, mahkeme: str = "adli", adet: int = 10, sayfa: int = 1) -> dict:
+async def ictihat_ara(ifade: str, mahkeme: str = "adli", adet: int = 10, sayfa: int = 1) -> dict:
     """Türk yargı kararı arar; künye + atıf + `id` döndürür.
 
     Bir karara atıf yapmadan ÖNCE bunu çağır. Dönen her sonuç yapısal künye taşır
@@ -50,13 +55,13 @@ def ictihat_ara(ifade: str, mahkeme: str = "adli", adet: int = 10, sayfa: int = 
     adet: en çok kaç sonuç (1-50). sayfa: sayfalama (1'den başlar).
     """
     m, istemci = _coz(mahkeme)
-    sonuc = istemci.ara(ifade, adet=adet, sayfa=sayfa)
+    sonuc = await anyio.to_thread.run_sync(partial(istemci.ara, ifade, adet=adet, sayfa=sayfa))
     sonuc["mahkeme_turu"] = m
     return sonuc
 
 
 @mcp.tool()
-def karar_getir(karar_id: str, mahkeme: str = "adli") -> dict:
+async def karar_getir(karar_id: str, mahkeme: str = "adli") -> dict:
     """Bir kararın resmî TAM metnini getirir (id + mahkeme, ictihat_ara sonucundan).
 
     Dönen `metin` kararın künyesi + gerekçesi + hükmüdür. Metni ve künyeyi aynen
@@ -64,7 +69,7 @@ def karar_getir(karar_id: str, mahkeme: str = "adli") -> dict:
     değerle aynı olmalı ("adli" → UYAP Emsal, "idari" → Danıştay, "anayasa" → AYM).
     """
     m, istemci = _coz(mahkeme)
-    sonuc = istemci.karar(karar_id)
+    sonuc = await anyio.to_thread.run_sync(partial(istemci.karar, karar_id))
     sonuc["mahkeme_turu"] = m
     return sonuc
 

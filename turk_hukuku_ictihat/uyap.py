@@ -28,6 +28,8 @@ _HEADERS = {
     "Referer": f"{_BASE}/",
     "Content-Type": "application/json; charset=UTF-8",
 }
+# bağlantı 10 sn, okuma/yazma 30 sn: asılı kalan istek sunucuyu uzun süre meşgul etmesin
+_TIMEOUT = httpx.Timeout(30.0, connect=10.0)
 
 
 def _atif(k: dict) -> str:
@@ -48,7 +50,7 @@ def ara(ifade: str, adet: int = 10, sayfa: int = 1) -> dict:
     sayfa = max(1, sayfa)
     govde = {"data": {"aranan": ifade, "arananKelime": ifade,
                       "pageSize": adet, "pageNumber": sayfa}}
-    r = httpx.post(f"{_BASE}/aramalist", json=govde, headers=_HEADERS, timeout=60)
+    r = httpx.post(f"{_BASE}/aramalist", json=govde, headers=_HEADERS, timeout=_TIMEOUT)
     r.raise_for_status()
     cevap = r.json()
     if (cevap.get("metadata") or {}).get("FMTY") == "ERROR":
@@ -87,7 +89,7 @@ def karar(karar_id: str) -> dict:
     """
     karar_id = str(karar_id).strip()
     r = httpx.get(f"{_BASE}/getDokuman", params={"id": karar_id},
-                  headers={"User-Agent": _UA, "Referer": f"{_BASE}/"}, timeout=60)
+                  headers={"User-Agent": _UA, "Referer": f"{_BASE}/"}, timeout=_TIMEOUT)
     r.raise_for_status()
     cevap = r.json()
     ham = cevap.get("data")

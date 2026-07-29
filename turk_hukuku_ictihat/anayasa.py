@@ -23,6 +23,8 @@ _BASE = "https://kararlarbilgibankasi.anayasa.gov.tr"
 _HEADERS = {"User-Agent": _UA,
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
             "Referer": f"{_BASE}/"}
+# bağlantı 10 sn, okuma/yazma 30 sn: asılı kalan istek sunucuyu uzun süre meşgul etmesin
+_TIMEOUT = httpx.Timeout(30.0, connect=10.0)
 
 _HREF = re.compile(r'href="(' + re.escape(_BASE) + r'/BB/\d+/\d+)"')
 _BASLIK = re.compile(r'<titles[^>]*>(.*?)</titles>', re.S)
@@ -41,7 +43,7 @@ def ara(ifade: str, adet: int = 10, sayfa: int = 1) -> dict:
     params = [("KelimeAra[]", ifade)]
     if sayfa > 1:
         params.append(("page", str(sayfa)))
-    r = httpx.get(f"{_BASE}/Ara", params=params, headers=_HEADERS, timeout=60,
+    r = httpx.get(f"{_BASE}/Ara", params=params, headers=_HEADERS, timeout=_TIMEOUT,
                   follow_redirects=True)
     r.raise_for_status()
     sonuclar = []
@@ -94,7 +96,7 @@ def karar(karar_id: str) -> dict:
     """Bir AYM bireysel başvuru kararının tam metnini çeker (id ictihat_ara'dan gelir)."""
     yol = str(karar_id).strip().lstrip("/")
     url = yol if yol.startswith("http") else f"{_BASE}/{yol}"
-    r = httpx.get(url, headers=_HEADERS, timeout=60, follow_redirects=True)
+    r = httpx.get(url, headers=_HEADERS, timeout=_TIMEOUT, follow_redirects=True)
     r.raise_for_status()
     # Karar metni Word-export gövdesindedir: <div class="WordSection1"> ... </div>
     i = r.text.find('class="WordSection1"')

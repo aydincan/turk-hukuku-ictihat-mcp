@@ -26,6 +26,8 @@ _HEADERS = {
     "Referer": f"{_BASE}/",
     "Content-Type": "application/json; charset=UTF-8",
 }
+# bağlantı 10 sn, okuma/yazma 30 sn: asılı kalan istek sunucuyu uzun süre meşgul etmesin
+_TIMEOUT = httpx.Timeout(30.0, connect=10.0)
 
 
 def _atif(k: dict) -> str:
@@ -47,7 +49,7 @@ def ara(ifade: str, adet: int = 10, sayfa: int = 1) -> dict:
     govde = {"data": {"andKelimeler": kelimeler or [ifade], "orKelimeler": [],
                       "notAndKelimeler": [], "notOrKelimeler": [],
                       "pageSize": adet, "pageNumber": sayfa}}
-    r = httpx.post(f"{_BASE}/aramalist", json=govde, headers=_HEADERS, timeout=60)
+    r = httpx.post(f"{_BASE}/aramalist", json=govde, headers=_HEADERS, timeout=_TIMEOUT)
     r.raise_for_status()
     cevap = r.json()
     if (cevap.get("metadata") or {}).get("FMTY") == "ERROR":
@@ -87,7 +89,7 @@ def karar(karar_id: str) -> dict:
     """Bir Danıştay kararının tam metnini çeker (id, ictihat_ara sonucundan gelir)."""
     karar_id = str(karar_id).strip()
     r = httpx.get(f"{_BASE}/getDokuman", params={"id": karar_id, "arananKelime": ""},
-                  headers={"User-Agent": _UA, "Referer": f"{_BASE}/"}, timeout=60)
+                  headers={"User-Agent": _UA, "Referer": f"{_BASE}/"}, timeout=_TIMEOUT)
     r.raise_for_status()
     metin = _metne_cevir(r.text)
     if not metin or len(metin) < 40:
