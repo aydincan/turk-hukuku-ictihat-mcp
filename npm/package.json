@@ -1,0 +1,38 @@
+{
+  "name": "turk-hukuku-ictihat-mcp",
+  "version": "0.3.2",
+  "description": "Türk yargı kararlarını (Yargıtay/Bölge Adliye + Danıştay + AYM bireysel başvuru) yapay zekâ araçlarına açan MCP sunucusu. Python tabanlı sunucuyu uvx ile başlatan npm sarmalayıcısı.",
+  "bin": {
+    "turk-hukuku-ictihat": "bin.js"
+  },
+  "files": [
+    "bin.js",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "mcpName": "io.github.aydincan/turk-hukuku-ictihat-mcp",
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "model-context-protocol",
+    "turkish-law",
+    "turk-hukuku",
+    "ictihat",
+    "yargitay",
+    "case-law",
+    "legal-tech",
+    "claude"
+  ],
+  "author": "Aydın Can Polatkan",
+  "license": "MIT",
+  "homepage": "https://turk-hukuku.com/mcp/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aydincan/turk-hukuku-ictihat-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aydincan/turk-hukuku-ictihat-mcp/issues"
+  }
+}
