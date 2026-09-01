@@ -8,13 +8,13 @@
     "url": "https://github.com/aydincan/turk-hukuku-ictihat-mcp",
     "source": "github"
   },
-  "version": "0.3.2",
+  "version": "0.3.3",
   "packages": [
     {
       "registryType": "pypi",
       "registryBaseUrl": "https://pypi.org",
       "identifier": "turk-hukuku-ictihat-mcp",
-      "version": "0.3.2",
+      "version": "0.3.3",
       "runtimeHint": "uvx",
       "transport": {
         "type": "stdio"

@@ -49,7 +49,7 @@ Her kaynak bir arama + bir belge uç noktası sunar:
 ```
 UYAP Emsal : POST /aramalist (aranan)               + GET /getDokuman?id
 Danıştay   : POST /aramalist (andKelimeler[])        + GET /getDokuman?id&arananKelime
-AYM        : GET  /Ara?KelimeAra[]= (HTML)           + GET /BB/<yıl>/<no> (HTML)
+AYM        : POST /api/core/public/search (JSON)     — arama da tam metin de aynı uçtan
 ```
 
 Sunucu aramayı yapar, künyeleri yapısal döndürür ve metni okunur düz metne çevirir
