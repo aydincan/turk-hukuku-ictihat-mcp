@@ -3,7 +3,7 @@
 Türk yargı kararlarını resmî kaynaktan arar ve getirir:
   - **adli yargı** (Yargıtay + Bölge Adliye + ilk derece) → UYAP Emsal
   - **idari yargı** (Danıştay) → Danıştay Karar Arama
-  - **anayasa yargısı** (AYM bireysel başvuru) → Kararlar Bilgi Bankası
+  - **anayasa yargısı** (AYM bireysel başvuru + norm denetimi) → Kararlar Bilgi Bankası
 
 Amaç: model bir karara atıf yaparken künyeyi (mahkeme, daire, esas/karar no, tarih)
 **hafızadan değil resmî kaynaktan** alsın — sahte karar numarası üretmesin.
@@ -22,7 +22,7 @@ from . import anayasa, danistay, uyap
 
 mcp = FastMCP("turk-hukuku-ictihat")
 
-_KAYNAK = {"adli": uyap, "idari": danistay, "anayasa": anayasa}
+_KAYNAK = {"adli": uyap, "idari": danistay, "anayasa": anayasa, "norm": anayasa.norm}
 
 
 def _coz(mahkeme: str):
@@ -33,9 +33,12 @@ def _coz(mahkeme: str):
         m = "idari"
     elif m in ("aym", "anayasa mahkemesi", "bireysel", "bireysel başvuru"):
         m = "anayasa"
+    elif m in ("norm denetimi", "normdenetimi", "norm-denetimi", "iptal", "itiraz"):
+        m = "norm"
     if m not in _KAYNAK:
-        raise ValueError("mahkeme yalnızca 'adli' (Yargıtay/BAM), 'idari' (Danıştay) "
-                         "ya da 'anayasa' (AYM bireysel başvuru) olabilir.")
+        raise ValueError("mahkeme yalnızca 'adli' (Yargıtay/BAM), 'idari' (Danıştay), "
+                         "'anayasa' (AYM bireysel başvuru) ya da 'norm' (AYM norm "
+                         "denetimi: iptal/itiraz) olabilir.")
     return m, _KAYNAK[m]
 
 
@@ -51,7 +54,8 @@ async def ictihat_ara(ifade: str, mahkeme: str = "adli", adet: int = 10, sayfa: 
     değerini `karar_getir`'e geçir.
 
     mahkeme: "adli" (Yargıtay + Bölge Adliye + ilk derece, UYAP Emsal — varsayılan),
-             "idari" (Danıştay) ya da "anayasa" (AYM bireysel başvuru).
+             "idari" (Danıştay), "anayasa" (AYM bireysel başvuru) ya da
+             "norm" (AYM norm denetimi: kanun/KHK iptal ve itiraz kararları).
     adet: en çok kaç sonuç (1-50). sayfa: sayfalama (1'den başlar).
     """
     m, istemci = _coz(mahkeme)
@@ -66,7 +70,8 @@ async def karar_getir(karar_id: str, mahkeme: str = "adli") -> dict:
 
     Dönen `metin` kararın künyesi + gerekçesi + hükmüdür. Metni ve künyeyi aynen
     aktar; esas/karar numarasını ve tarihi değiştirme. `mahkeme`, aramada kullandığın
-    değerle aynı olmalı ("adli" → UYAP Emsal, "idari" → Danıştay, "anayasa" → AYM).
+    değerle aynı olmalı ("adli" → UYAP Emsal, "idari" → Danıştay, "anayasa" → AYM
+    bireysel başvuru, "norm" → AYM norm denetimi).
     """
     m, istemci = _coz(mahkeme)
     sonuc = await anyio.to_thread.run_sync(partial(istemci.karar, karar_id))

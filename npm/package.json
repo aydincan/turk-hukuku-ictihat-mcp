@@ -1,6 +1,6 @@
 {
   "name": "turk-hukuku-ictihat-mcp",
-  "version": "0.3.3",
+  "version": "0.4.0",
   "description": "Türk yargı kararlarını (Yargıtay/Bölge Adliye + Danıştay + AYM bireysel başvuru) yapay zekâ araçlarına açan MCP sunucusu. Python tabanlı sunucuyu uvx ile başlatan npm sarmalayıcısı.",
   "bin": {
     "turk-hukuku-ictihat": "bin.js"

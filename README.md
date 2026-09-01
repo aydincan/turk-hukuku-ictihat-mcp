@@ -24,8 +24,9 @@ Ayrıntı: [`SORUMLULUK-REDDI.md`](./SORUMLULUK-REDDI.md) · [`PRIVACY.md`](./PR
 | `ictihat_ara(ifade, mahkeme, adet, sayfa)` | Karar arar; künye + atıf + `id` döndürür |
 | `karar_getir(karar_id, mahkeme)` | Bir kararın resmî **tam** metni (künye + gerekçe + hüküm) |
 
-`mahkeme` üç değer alır: **`adli`** (Yargıtay + Bölge Adliye + ilk derece — UYAP Emsal,
-varsayılan), **`idari`** (Danıştay) ya da **`anayasa`** (AYM bireysel başvuru).
+`mahkeme` dört değer alır: **`adli`** (Yargıtay + Bölge Adliye + ilk derece — UYAP Emsal,
+varsayılan), **`idari`** (Danıştay), **`anayasa`** (AYM bireysel başvuru) ya da
+**`norm`** (AYM norm denetimi: iptal/itiraz).
 `karar_getir`'e aramada kullandığın `mahkeme` değerini aynen geçir.
 
 Tipik akış: `ictihat_ara("imar planı iptal", mahkeme="idari")` → sonuçtan bir `id` seç →
@@ -40,7 +41,8 @@ Tipik akış: `ictihat_ara("imar planı iptal", mahkeme="idari")` → sonuçtan 
   390.000+ doküman).
 - **Anayasa yargısı** (`mahkeme="anayasa"`): AYM bireysel başvuru kararları
   (kararlarbilgibankasi.anayasa.gov.tr).
-- **Planlanan:** AYM norm denetimi (iptal/itiraz) kararları.
+- **Norm denetimi** (`mahkeme="norm"`): AYM iptal/itiraz kararları; künye E./K.
+  numaraları ve Resmî Gazete bilgisiyle döner (aynı kaynak).
 
 ## Nasıl çalışır
 

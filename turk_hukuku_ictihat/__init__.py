@@ -1,2 +1,2 @@
 """turk-hukuku-ictihat: Türk yargı kararlarını (UYAP Emsal) MCP üzerinden açan sunucu."""
-__version__ = "0.3.3"
+__version__ = "0.4.0"
