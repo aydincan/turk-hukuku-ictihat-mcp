@@ -15,6 +15,8 @@ böylece model künye uydurmaz, **sahte karar numarası üretmez.**
 
 Ayrıntı: [`SORUMLULUK-REDDI.md`](./SORUMLULUK-REDDI.md) · [`PRIVACY.md`](./PRIVACY.md) (veri toplama yok, telemetri yok; dış bağlantılar yalnızca resmî karar siteleri).
 
+**Belgeler ve kurulum rehberi:** [turk-hukuku.com/mcp](https://turk-hukuku.com/mcp/) · Terminal kullanmıyorsanız [masaüstü uygulaması](https://turk-hukuku.com/uygulama/) bu sunucuyu kendisi kurup çalıştırır (Mac ve Windows).
+
 ---
 
 ## Ne yapar
