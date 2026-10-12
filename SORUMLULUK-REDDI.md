@@ -2,13 +2,13 @@
 
 > **Bu araç hukuki danışmanlık değildir.** `turk-hukuku-ictihat-mcp`, Türk yargı
 > kararlarına resmî kaynaklardan erişimi kolaylaştıran **deneysel bir teknik araçtır.**
-> Lisans metni (Apache-2.0 / MIT) yazılımın kullanımına ilişkin sorumluluğu reddeder;
+> Lisans metni (MIT) yazılımın kullanımına ilişkin sorumluluğu reddeder;
 > aşağıdaki ek uyarılar hukuki içerik bakımından geçerlidir.
 
 ## 1. Hukuki danışmanlık değildir
 
 Bu sunucunun döndürdüğü hiçbir karar veya künye **avukatlık hizmeti, hukuki görüş veya
-danışmanlık oluşturmaz** ve avukat–müvekkil ilişkisi doğurmaz. Somut bir hukuki sorununuz
+danışmanlık oluşturmaz** ve avukat-müvekkil ilişkisi doğurmaz. Somut bir hukuki sorununuz
 varsa yetkili bir avukata danışın. Çıktıların hukuki sorumluluğu, onları kullanan
 **yetkili hukukçuya** aittir.
 
@@ -18,8 +18,10 @@ varsa yetkili bir avukata danışın. Çıktıların hukuki sorumluluğu, onlar�
   döndürür; ancak bir kararın **güncelliğini, kesinleşme durumunu, bozulup bozulmadığını
   ve somut olaya uygunluğunu** siz değerlendirmelisiniz.
 - Bir kararın **bağlayıcılığı ve emsal değeri** ayrı bir hukuki analiz gerektirir.
-- Künyeyi kullanmadan önce resmî karar arama sistemlerinden (UYAP Emsal,
-  karararama.danistay.gov.tr, kararlarbilgibankasi.anayasa.gov.tr) **teyit edin.**
+- Künyeyi kullanmadan önce resmî karar arama sistemlerinden **teyit edin**: Yargıtay için
+  karararama.yargitay.gov.tr ya da mevzuat.adalet.gov.tr, Bölge Adliye ve ilk derece için
+  UYAP Emsal, Danıştay için karararama.danistay.gov.tr, AYM için
+  kararlarbilgibankasi.anayasa.gov.tr. Sonuçtaki `kaynak` bağlantısı bunun içindir.
 
 ## 3. Garanti yok
 

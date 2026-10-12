@@ -1,13 +1,15 @@
 # turk-hukuku-ictihat-mcp
 
 Türk **yargı kararlarını** resmî kaynaktan yapay zekâ araçlarına açan bir **MCP sunucusu**:
-**adli yargı** ([UYAP Emsal](https://emsal.uyap.gov.tr) — Yargıtay/Bölge Adliye/ilk derece),
+**Yargıtay** ([Adalet Bakanlığı Mevzuat ve İçtihat](https://mevzuat.adalet.gov.tr)),
+**Bölge Adliye ve ilk derece** ([UYAP Emsal](https://emsal.uyap.gov.tr)),
 **idari yargı** ([Danıştay](https://karararama.danistay.gov.tr)) ve **anayasa yargısı**
-([AYM Bireysel Başvuru](https://kararlarbilgibankasi.anayasa.gov.tr)).
+([AYM Kararlar Bilgi Bankası](https://kararlarbilgibankasi.anayasa.gov.tr)).
 
 Amaç tek cümle: model bir karara atıf yaparken künyeyi (**mahkeme, daire, esas/karar no,
-tarih**) hafızasından değil **resmî kaynaktan** alsın. UYAP Emsal künyeyi yapısal döndürür;
-böylece model künye uydurmaz, **sahte karar numarası üretmez.**
+tarih**) hafızasından değil **resmî kaynaktan** alsın. Künye yapısal döner; Yargıtay ve
+AYM sonuçları kaynak bağlantısı taşır, diğerlerinde bağlantı `karar_getir` ile gelir.
+Model yine de yanılabilir; her künyeyi resmî kaynaktan teyit edin.
 
 > **Hukuki danışmanlık değildir.** Bu araç içtihada erişimi kolaylaştırır; kararın güncelliğini,
 > kesinleşme durumunu ve somut olaya uygunluğunu siz değerlendirin. Bir kararın bağlayıcılığı
@@ -26,19 +28,39 @@ Ayrıntı: [`SORUMLULUK-REDDI.md`](./SORUMLULUK-REDDI.md) · [`PRIVACY.md`](./PR
 | `ictihat_ara(ifade, mahkeme, adet, sayfa)` | Karar arar; künye + atıf + `id` döndürür |
 | `karar_getir(karar_id, mahkeme)` | Bir kararın resmî **tam** metni (künye + gerekçe + hüküm) |
 
-`mahkeme` dört değer alır: **`adli`** (Yargıtay + Bölge Adliye + ilk derece — UYAP Emsal,
-varsayılan), **`idari`** (Danıştay), **`anayasa`** (AYM bireysel başvuru) ya da
-**`norm`** (AYM norm denetimi: iptal/itiraz).
-`karar_getir`'e aramada kullandığın `mahkeme` değerini aynen geçir.
+`mahkeme` şu değerleri alır:
 
-Tipik akış: `ictihat_ara("imar planı iptal", mahkeme="idari")` → sonuçtan bir `id` seç →
-`karar_getir(id, mahkeme="idari")` → kararın tam metni. Her sonuç hazır bir `atif` taşır:
+| Değer | Kapsam | Kaynak |
+|-------|--------|--------|
+| **`adli`** (varsayılan) | Yargıtay + Bölge Adliye ve ilk derece, birlikte | Bedesten + UYAP Emsal |
+| **`yargitay`** | Yargıtay daireleri ve kurulları | Bedesten (mevzuat.adalet.gov.tr) |
+| **`emsal`** | Bölge Adliye hukuk daireleri ve ilk derece | UYAP Emsal |
+| **`idari`** | Danıştay | karararama.danistay.gov.tr |
+| **`anayasa`** | AYM bireysel başvuru | kararlarbilgibankasi.anayasa.gov.tr |
+| **`norm`** | AYM norm denetimi (iptal/itiraz) | aynı kaynak |
+
+`karar_getir`'e aramada kullandığın `mahkeme` değerini aynen geçir (`yargitay:` önekli id
+her durumda Yargıtay'dan gelir). Sözcükler birlikte aranır, hepsi geçmeli; tam ifade için
+çift tırnak kullan (`"ihtiyaç nedeniyle tahliye"`). Yargıtay, emsal ve AYM aramasında
+başına eksi hariç tutar (`-ceza`), `OR` "veya" demektir. Kesme işaretinden sonraki ek
+atılır ("TMK'nın" → "TMK"). `adli` aramada `adet` en az 2'dir.
+
+Tipik akış: `ictihat_ara("ihtiyaç nedeniyle tahliye", mahkeme="yargitay")` → sonuçtan bir
+`id` seç → `karar_getir(id, mahkeme="yargitay")` → kararın tam metni. Her sonuç hazır bir
+`atif` taşır: *"Yargıtay 6. Hukuk Dairesi, E.2015/2565 K.2016/25, T.18.01.2016"* ·
 *"Danıştay 6. Daire, E.2023/1084 K.2025/10046"* · *"AYM, B. No: 2020/36883, K.T. 16/12/2025"*.
+Yargıtay sonuçları ayrıca kararın herkese açık sayfasını (`kaynak`) verir.
 
 ## Kapsam
 
-- **Adli yargı** (`mahkeme="adli"`): Yargıtay, Bölge Adliye Mahkemeleri ve ilk derece
-  mahkeme kararları (UYAP Emsal — 800.000+ karar).
+- **Yargıtay** (`mahkeme="yargitay"`): hukuk ve ceza daireleri ile kurulların kararları;
+  Adalet Bakanlığı'nın Mevzuat ve İçtihat Programı'nın arka ucu (bedesten.adalet.gov.tr).
+  Her kararın herkese açık sayfası: `https://mevzuat.adalet.gov.tr/ictihat/<id>`.
+- **Bölge Adliye ve ilk derece** (`mahkeme="emsal"`): Bölge Adliye Mahkemeleri hukuk
+  daireleri ve bazı ilk derece mahkemeleri (asliye ticaret, fikrî ve sınaî haklar); UYAP
+  Emsal. Herkese açık UYAP Emsal Yargıtay kararı içermez.
+- **Adli yargı birlikte** (`mahkeme="adli"`, varsayılan): iki kaynağı aynı anda arar;
+  Yargıtay sonuçlarının id'si `yargitay:` önekini taşır.
 - **İdari yargı** (`mahkeme="idari"`): Danıştay kararları (karararama.danistay.gov.tr —
   390.000+ doküman).
 - **Anayasa yargısı** (`mahkeme="anayasa"`): AYM bireysel başvuru kararları
@@ -51,6 +73,7 @@ Tipik akış: `ictihat_ara("imar planı iptal", mahkeme="idari")` → sonuçtan 
 Her kaynak bir arama + bir belge uç noktası sunar:
 
 ```
+Bedesten   : POST /emsal-karar/searchDocuments       + POST /emsal-karar/getDocumentContent
 UYAP Emsal : POST /aramalist (aranan)               + GET /getDokuman?id
 Danıştay   : POST /aramalist (andKelimeler[])        + GET /getDokuman?id&arananKelime
 AYM        : POST /api/core/public/search (JSON)     — arama da tam metin de aynı uçtan
@@ -105,8 +128,9 @@ pip install turk-hukuku-ictihat-mcp
 
 [MIT](./LICENSE) · © 2026 Aydın Can Polatkan
 
-Veri kaynağı [UYAP Emsal](https://emsal.uyap.gov.tr)'a (Adalet Bakanlığı) aittir; bu proje
-yalnızca kamuya açık resmî karar metnine erişimi kolaylaştıran bağımsız bir istemcidir.
+Veriler kaynak kurumlara aittir ([Adalet Bakanlığı](https://mevzuat.adalet.gov.tr),
+[UYAP Emsal](https://emsal.uyap.gov.tr), Danıştay, Anayasa Mahkemesi); bu proje yalnızca kamuya
+açık resmî karar metnine erişimi kolaylaştıran bağımsız bir istemcidir.
 
 ---
 

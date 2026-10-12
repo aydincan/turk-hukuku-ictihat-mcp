@@ -1,15 +1,17 @@
 """UYAP Emsal Karar istemcisi: yargı kararlarını resmî kaynaktan arar/çeker.
 
 Veri kaynağı: https://emsal.uyap.gov.tr (Adalet Bakanlığı Emsal Karar Arama).
-Kapsam: Yargıtay, Bölge Adliye Mahkemeleri ve ilk derece mahkeme kararları (adli yargı).
+Kapsam: Bölge Adliye Mahkemeleri hukuk daireleri ve bazı ilk derece mahkemeleri (asliye
+ticaret, fikrî ve sınaî haklar). Herkese açık arayüz Yargıtay kararı içermez; Yargıtay
+kararları yargitay.py (Bedesten) üzerinden gelir.
 
 İki uç nokta tersine mühendislikle çözüldü:
   POST /aramalist     -> {"data":{"aranan":Q,"arananKelime":Q,"pageSize":N,"pageNumber":M}}
                          künye listesi döndürür (daire, esasNo, kararNo, kararTarihi, durum)
   GET  /getDokuman?id -> kararın tam metni (HTML)
 
-Künye (mahkeme + daire + esas/karar no + tarih) **yapısal** gelir; bu yüzden
-model künyeyi metinden ayıklamak zorunda değildir — sahte numara üretme riski yoktur.
+Künye (mahkeme + daire + esas/karar no + tarih) **yapısal** gelir; model numarayı
+metinden ayıklamak ya da hafızadan yazmak zorunda kalmaz.
 """
 from __future__ import annotations
 
@@ -17,6 +19,8 @@ import html as _html
 import re
 
 import httpx
+
+from .ortak import erisim_siniri, ve_sorgusu
 
 _UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36")
@@ -48,9 +52,11 @@ def ara(ifade: str, adet: int = 10, sayfa: int = 1) -> dict:
     """
     adet = max(1, min(adet, 50))
     sayfa = max(1, sayfa)
-    govde = {"data": {"aranan": ifade, "arananKelime": ifade,
+    sorgu = ve_sorgusu(ifade)   # düz sözcükler VEYA ile aranır; bkz. ortak.py
+    govde = {"data": {"aranan": sorgu, "arananKelime": sorgu,
                       "pageSize": adet, "pageNumber": sayfa}}
     r = httpx.post(f"{_BASE}/aramalist", json=govde, headers=_HEADERS, timeout=_TIMEOUT)
+    erisim_siniri(r, "UYAP Emsal")
     r.raise_for_status()
     cevap = r.json()
     if (cevap.get("metadata") or {}).get("FMTY") == "ERROR":
@@ -88,8 +94,11 @@ def karar(karar_id: str) -> dict:
     künyeyi aynen aktar; karar numarası/tarihi değiştirme, uydurma.
     """
     karar_id = str(karar_id).strip()
+    if karar_id.lower().startswith("yargitay:"):   # Bedesten ile aynı belge kimliği uzayı
+        karar_id = karar_id[len("yargitay:"):]
     r = httpx.get(f"{_BASE}/getDokuman", params={"id": karar_id},
                   headers={"User-Agent": _UA, "Referer": f"{_BASE}/"}, timeout=_TIMEOUT)
+    erisim_siniri(r, "UYAP Emsal")
     r.raise_for_status()
     cevap = r.json()
     ham = cevap.get("data")

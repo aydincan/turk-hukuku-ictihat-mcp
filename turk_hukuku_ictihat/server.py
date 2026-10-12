@@ -1,7 +1,9 @@
 """turk-hukuku-ictihat MCP sunucusu.
 
 Türk yargı kararlarını resmî kaynaktan arar ve getirir:
-  - **adli yargı** (Yargıtay + Bölge Adliye + ilk derece) → UYAP Emsal
+  - **Yargıtay** → Adalet Bakanlığı Bedesten (mevzuat.adalet.gov.tr)
+  - **Bölge Adliye + ilk derece** → UYAP Emsal
+  - **adli** (varsayılan) → ikisi birlikte
   - **idari yargı** (Danıştay) → Danıştay Karar Arama
   - **anayasa yargısı** (AYM bireysel başvuru + norm denetimi) → Kararlar Bilgi Bankası
 
@@ -18,27 +20,41 @@ from functools import partial
 import anyio
 from mcp.server.fastmcp import FastMCP
 
-from . import anayasa, danistay, uyap
+from . import adli, anayasa, danistay, uyap, yargitay
 
 mcp = FastMCP("turk-hukuku-ictihat")
 
-_KAYNAK = {"adli": uyap, "idari": danistay, "anayasa": anayasa, "norm": anayasa.norm}
+_KAYNAK = {"adli": adli, "yargitay": yargitay, "emsal": uyap, "idari": danistay,
+           "anayasa": anayasa, "norm": anayasa.norm}
+
+
+_TR = str.maketrans("ışğüöç", "isguoc")
+
+
+def _sade(s: str) -> str:
+    """Türkçe büyük/küçük harfi ASCII'ye indirger: 'İSTİNAF' -> 'istinaf', 'DANIŞTAY' -> 'danistay'.
+
+    str.lower() 'İ'yi 'i' + birleşik nokta yapar; önce İ'yi i'ye çeviririz.
+    """
+    return s.strip().replace("İ", "i").replace("I", "ı").lower().replace("\u0307", "").translate(_TR)
 
 
 def _coz(mahkeme: str):
-    m = (mahkeme or "adli").strip().lower()
-    if m in ("yargıtay", "yargitay", "emsal", "bam"):
-        m = "adli"
-    elif m in ("danıştay", "danistay", "idare"):
+    m = _sade(mahkeme or "") or "adli"
+    if m in ("yargitay karari",):
+        m = "yargitay"
+    elif m in ("uyap", "uyap emsal", "bam", "bolge adliye", "istinaf"):
+        m = "emsal"
+    elif m in ("danistay", "idare"):
         m = "idari"
-    elif m in ("aym", "anayasa mahkemesi", "bireysel", "bireysel başvuru"):
+    elif m in ("aym", "anayasa mahkemesi", "bireysel", "bireysel basvuru"):
         m = "anayasa"
     elif m in ("norm denetimi", "normdenetimi", "norm-denetimi", "iptal", "itiraz"):
         m = "norm"
     if m not in _KAYNAK:
-        raise ValueError("mahkeme yalnızca 'adli' (Yargıtay/BAM), 'idari' (Danıştay), "
-                         "'anayasa' (AYM bireysel başvuru) ya da 'norm' (AYM norm "
-                         "denetimi: iptal/itiraz) olabilir.")
+        raise ValueError("mahkeme yalnızca 'adli' (Yargıtay + BAM/ilk derece), 'yargitay', "
+                         "'emsal' (BAM/ilk derece), 'idari' (Danıştay), 'anayasa' (AYM "
+                         "bireysel başvuru) ya da 'norm' (AYM norm denetimi: iptal/itiraz) olabilir.")
     return m, _KAYNAK[m]
 
 
@@ -53,10 +69,17 @@ async def ictihat_ara(ifade: str, mahkeme: str = "adli", adet: int = 10, sayfa: 
     bunları aynen kullan, uydurma. Tam metin için sonuçtaki `id` ile aynı `mahkeme`
     değerini `karar_getir`'e geçir.
 
-    mahkeme: "adli" (Yargıtay + Bölge Adliye + ilk derece, UYAP Emsal — varsayılan),
+    mahkeme: "adli" (varsayılan: Yargıtay + Bölge Adliye/ilk derece birlikte),
+             "yargitay" (yalnız Yargıtay daireleri ve kurulları),
+             "emsal" (yalnız Bölge Adliye hukuk daireleri ve ilk derece, UYAP Emsal),
              "idari" (Danıştay), "anayasa" (AYM bireysel başvuru) ya da
              "norm" (AYM norm denetimi: kanun/KHK iptal ve itiraz kararları).
-    adet: en çok kaç sonuç (1-50). sayfa: sayfalama (1'den başlar).
+    ifade: sözcükler birlikte aranır (hepsi geçmeli); tam ifade için çift tırnak
+           ("ihtiyaç nedeniyle tahliye"). Yargıtay, emsal ve AYM aramasında başına eksi
+           hariç tutar (-ceza), OR "veya" demektir. Yargıtay ve AYM sonuçları `kaynak`
+           bağlantısı taşır.
+    adet: en çok kaç sonuç (1-50; "adli"de en az 2, iki kaynağa bölünür).
+    sayfa: sayfalama (1'den başlar).
     """
     m, istemci = _coz(mahkeme)
     sonuc = await anyio.to_thread.run_sync(partial(istemci.ara, ifade, adet=adet, sayfa=sayfa))
@@ -70,10 +93,15 @@ async def karar_getir(karar_id: str, mahkeme: str = "adli") -> dict:
 
     Dönen `metin` kararın künyesi + gerekçesi + hükmüdür. Metni ve künyeyi aynen
     aktar; esas/karar numarasını ve tarihi değiştirme. `mahkeme`, aramada kullandığın
-    değerle aynı olmalı ("adli" → UYAP Emsal, "idari" → Danıştay, "anayasa" → AYM
-    bireysel başvuru, "norm" → AYM norm denetimi).
+    değerle aynı olmalı ("adli" → id önekine göre Yargıtay ya da UYAP Emsal,
+    "yargitay" → Bedesten, "emsal" → UYAP Emsal, "idari" → Danıştay, "anayasa" → AYM
+    bireysel başvuru, "norm" → AYM norm denetimi). `yargitay:` önekli id, `mahkeme`
+    ne olursa olsun Yargıtay kaynağından getirilir.
     """
-    m, istemci = _coz(mahkeme)
+    if str(karar_id).strip().lower().startswith("yargitay:"):
+        m, istemci = "yargitay", yargitay
+    else:
+        m, istemci = _coz(mahkeme)
     sonuc = await anyio.to_thread.run_sync(partial(istemci.karar, karar_id))
     sonuc["mahkeme_turu"] = m
     return sonuc

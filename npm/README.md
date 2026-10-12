@@ -1,7 +1,7 @@
 # turk-hukuku-ictihat-mcp
 
-Türk yargı kararlarını (Yargıtay ve Bölge Adliye: UYAP Emsal, Danıştay, AYM bireysel
-başvuru) resmî kaynaklardan yapay zekâ araçlarına açan MCP sunucusu. Bu npm paketi,
+Türk yargı kararlarını (Yargıtay, Bölge Adliye ve ilk derece, Danıştay, AYM) resmî
+kaynaklardan yapay zekâ araçlarına açan MCP sunucusu. Bu npm paketi,
 PyPI'daki Python sunucusunu `uvx` ile başlatan ince bir sarmalayıcıdır; `npx`
 alışkanlığındaki kullanıcılar için ek bir kapıdır.
 
@@ -28,7 +28,7 @@ claude mcp add turk-hukuku-ictihat -- uvx --from turk-hukuku-ictihat-mcp turk-hu
 
 ## Araçlar
 
-- `ictihat_ara` : karar arama; künye + atıf + id döndürür (adli/idari/anayasa)
+- `ictihat_ara` : karar arama; künye + atıf + id döndürür (adli/yargitay/emsal/idari/anayasa/norm)
 - `karar_getir` : bir kararın resmî tam metni
 
 ## Bağlantılar

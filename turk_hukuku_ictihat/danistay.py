@@ -92,7 +92,8 @@ def karar(karar_id: str) -> dict:
                   headers={"User-Agent": _UA, "Referer": f"{_BASE}/"}, timeout=_TIMEOUT)
     r.raise_for_status()
     metin = _metne_cevir(r.text)
-    if not metin or len(metin) < 40:
+    # geçersiz id'de site 200 ile bir hata sayfası döndürür ("Hata! Hata tarafımıza ulaşmış...")
+    if not metin or len(metin) < 40 or metin.startswith("Hata!") or "Hata tarafımıza ulaşmış" in metin[:300]:
         raise LookupError(
             f"id={karar_id} için Danıştay karar metni bulunamadı. id'yi ictihat_ara "
             f"(mahkeme='idari') sonucundan alın.")

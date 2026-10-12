@@ -24,6 +24,8 @@ from types import SimpleNamespace
 
 import httpx
 
+from .ortak import ve_sorgusu
+
 _UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36")
 _BASE = "https://kararlarbilgibankasi.anayasa.gov.tr"
@@ -79,7 +81,8 @@ def ara(ifade: str, adet: int = 10, sayfa: int = 1) -> dict:
     """AYM bireysel başvuru kararlarında arar. Künye listesi + atıf döndürür."""
     adet = max(1, min(adet, 50))
     sayfa = max(1, sayfa)
-    d = _post({"kararTipi": "BireyselBasvuru", "query": ifade,
+    # API düz sözcükleri VEYA ile arar; ve_sorgusu VE'ye çevirir (bkz. ortak.py)
+    d = _post({"kararTipi": "BireyselBasvuru", "query": ve_sorgusu(ifade),
                "page": sayfa, "size": adet})
     sonuclar = [_kayit_ozeti(r) for r in d.get("data") or []]
     return {"ifade": ifade, "sayfa": sayfa,
@@ -162,7 +165,7 @@ def norm_ara(ifade: str, adet: int = 10, sayfa: int = 1) -> dict:
     """AYM norm denetimi (iptal/itiraz) kararlarında arar. Künye + atıf döndürür."""
     adet = max(1, min(adet, 50))
     sayfa = max(1, sayfa)
-    d = _post({"kararTipi": "NormDenetimi", "query": ifade,
+    d = _post({"kararTipi": "NormDenetimi", "query": ve_sorgusu(ifade),
                "page": sayfa, "size": adet})
     sonuclar = [_norm_ozeti(r) for r in d.get("data") or []]
     return {"ifade": ifade, "sayfa": sayfa,

@@ -1,4 +1,4 @@
-# Gizlilik Politikası — Privacy Policy
+# Gizlilik Politikası / Privacy Policy
 
 `turk-hukuku-ictihat-mcp`, Türk yargı kararlarını resmî kaynaklardan yapay zekâ araçlarına
 açan bir **MCP sunucusudur.** Tamamen **sizin makinenizde / oturumunuzda** çalışır.
@@ -14,12 +14,14 @@ açan bir **MCP sunucusudur.** Tamamen **sizin makinenizde / oturumunuzda** çal
 
 Sunucu yalnızca aşağıdaki resmî, kamuya açık karar kaynaklarına bağlanır:
 
-- **`https://emsal.uyap.gov.tr`** — UYAP Emsal (Yargıtay / Bölge Adliye / ilk derece)
-- **`https://karararama.danistay.gov.tr`** — Danıştay karar arama
-- **`https://kararlarbilgibankasi.anayasa.gov.tr`** — AYM Bireysel Başvuru kararları
+- **`https://bedesten.adalet.gov.tr`**: Adalet Bakanlığı Mevzuat ve İçtihat (Yargıtay kararları)
+- **`https://emsal.uyap.gov.tr`**: UYAP Emsal (Bölge Adliye / ilk derece)
+- **`https://karararama.danistay.gov.tr`**: Danıştay karar arama
+- **`https://kararlarbilgibankasi.anayasa.gov.tr`**: AYM bireysel başvuru ve norm denetimi kararları
 
-Arama ifadeniz yalnızca seçtiğiniz mahkemeye ait bu resmî siteye iletilir; başka hiçbir
-üçüncü tarafa gitmez. Bu sitelere yapılan istekler, ilgili kurumun kendi gizlilik ve
+Arama ifadeniz yalnızca seçtiğiniz mahkemeye ait resmî site(ler)e iletilir (varsayılan
+`adli` arama hem `bedesten.adalet.gov.tr` hem `emsal.uyap.gov.tr` adresine gider); başka
+hiçbir üçüncü tarafa gitmez. Bu sitelere yapılan istekler, ilgili kurumun kendi gizlilik ve
 erişim koşullarına tabidir.
 
 ## Müvekkil ve kişisel veri uyarısı
@@ -39,6 +41,6 @@ decisions from official sources to AI tools. It runs entirely **locally** on you
 machine/session. It **collects, stores, or transmits no personal data**, has **no
 telemetry, analytics, logging, database, or disk cache**, and the maintainer cannot
 access your queries. Its outbound connections are **only** to the official public case-law
-sites **`emsal.uyap.gov.tr`**, **`karararama.danistay.gov.tr`** and
-**`kararlarbilgibankasi.anayasa.gov.tr`**; requests there are subject to those institutions'
-own policies. Do not put client names or personal data in your search terms.
+sites **`bedesten.adalet.gov.tr`**, **`emsal.uyap.gov.tr`**, **`karararama.danistay.gov.tr`** and
+**`kararlarbilgibankasi.anayasa.gov.tr`** (the default `adli` search queries the first two);
+requests there are subject to those institutions' own policies. Do not put client names or personal data in your search terms.
