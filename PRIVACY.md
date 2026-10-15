@@ -8,6 +8,8 @@ açan bir **MCP sunucusudur.** Tamamen **sizin makinenizde / oturumunuzda** çal
 - Sunucu **hiçbir kişisel veri toplamaz, saklamaz veya proje sahibine göndermez.**
 - **Telemetri, analitik, izleme yoktur.** Kaynak kodda loglama, veritabanı veya disk
   önbelleği bulunmaz; sorgular ve sonuçlar **kalıcı olarak saklanmaz.**
+- Getirilen kararlar yalnızca oturum boyunca bellekte tutulur (en çok 256 karar), aynı
+  karar yeniden istenince siteye tekrar gidilmez; sunucu kapanınca silinir.
 - Proje sahibi sizin sorgularınıza **erişemez.**
 
 ## Dışarıya giden bağlantılar
@@ -23,6 +25,20 @@ Arama ifadeniz yalnızca seçtiğiniz mahkemeye ait resmî site(ler)e iletilir (
 `adli` arama hem `bedesten.adalet.gov.tr` hem `emsal.uyap.gov.tr` adresine gider); başka
 hiçbir üçüncü tarafa gitmez. Bu sitelere yapılan istekler, ilgili kurumun kendi gizlilik ve
 erişim koşullarına tabidir.
+
+## Resmî sitelere karşı tutum
+
+- Sunucu bu sitelere kendi adıyla bağlanır: her istekte User-Agent olarak
+  `turk-hukuku-ictihat-mcp/<sürüm> (+https://turk-hukuku.com/mcp/)` gönderir; tarayıcı ya da
+  resmî uygulama taklidi yapmaz.
+- İstekler site başına sıraya konur: aynı siteye aynı anda tek istek gider, iki istek
+  arasında en az bir saniye beklenir.
+- Captcha çözülmez ve atlanmaz. Site doğrulama isterse, erişimi reddederse (HTTP 403),
+  erişim sınırı bildirirse (HTTP 429) ya da karar yerine başka bir sayfaya yönlendirirse
+  sunucu durur, isteği yinelemez, o siteye bir süre istek göndermez ve sizi resmî siteye
+  yönlendirir.
+- Diğer hatalarda (sunucu hatası, bulunamayan karar, ağ hatası) kısa bir Türkçe ileti
+  verilir; istek yinelenmez.
 
 ## Müvekkil ve kişisel veri uyarısı
 

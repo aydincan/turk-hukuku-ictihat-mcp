@@ -5,7 +5,7 @@ const { spawnSync } = require("node:child_process");
 
 const r = spawnSync(
   "uvx",
-  ["--from", "turk-hukuku-ictihat-mcp==0.5.0", "turk-hukuku-ictihat"],
+  ["--from", "turk-hukuku-ictihat-mcp==0.5.1", "turk-hukuku-ictihat"],
   { stdio: "inherit" }
 );
 

@@ -53,5 +53,5 @@ def ara(ifade: str, adet: int = 10, sayfa: int = 1) -> dict:
 def karar(karar_id: str) -> dict:
     karar_id = str(karar_id).strip()
     if karar_id.lower().startswith(_ONEK):
-        return yargitay.karar(karar_id[len(_ONEK):])
+        return yargitay.karar(karar_id)          # öneki kendisi ayıklar, id'yi aynen döndürür
     return uyap.karar(karar_id)

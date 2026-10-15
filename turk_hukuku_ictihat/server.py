@@ -8,7 +8,11 @@ Türk yargı kararlarını resmî kaynaktan arar ve getirir:
   - **anayasa yargısı** (AYM bireysel başvuru + norm denetimi) → Kararlar Bilgi Bankası
 
 Amaç: model bir karara atıf yaparken künyeyi (mahkeme, daire, esas/karar no, tarih)
-**hafızadan değil resmî kaynaktan** alsın — sahte karar numarası üretmesin.
+**hafızadan değil resmî kaynaktan** alsın; sahte karar numarası üretmesin.
+
+Erişim kuralları (ortak.py): sunucu kendini User-Agent ile tanıtır, aynı siteye saniyede
+en çok bir istek gönderir, captcha ve erişim sınırında durur (yeniden denemez); getirilen
+kararlar süreç içinde id ile önbellekte tutulur.
 
 Çalıştırma:  python -m turk_hukuku_ictihat
 Taşıma:      stdio (Claude Code / Codex / Gemini CLI ile uyumlu)
@@ -21,6 +25,7 @@ import anyio
 from mcp.server.fastmcp import FastMCP
 
 from . import adli, anayasa, danistay, uyap, yargitay
+from .ortak import karar_onbellegi
 
 mcp = FastMCP("turk-hukuku-ictihat")
 
@@ -65,7 +70,7 @@ async def ictihat_ara(ifade: str, mahkeme: str = "adli", adet: int = 10, sayfa: 
     """Türk yargı kararı arar; künye + atıf + `id` döndürür.
 
     Bir karara atıf yapmadan ÖNCE bunu çağır. Dönen her sonuç yapısal künye taşır
-    (mahkeme, esas_no, karar_no, karar_tarihi) ve hazır bir `atif` dizesi verir —
+    (mahkeme, esas_no, karar_no, karar_tarihi) ve hazır bir `atif` dizesi verir;
     bunları aynen kullan, uydurma. Tam metin için sonuçtaki `id` ile aynı `mahkeme`
     değerini `karar_getir`'e geçir.
 
@@ -76,8 +81,8 @@ async def ictihat_ara(ifade: str, mahkeme: str = "adli", adet: int = 10, sayfa: 
              "norm" (AYM norm denetimi: kanun/KHK iptal ve itiraz kararları).
     ifade: sözcükler birlikte aranır (hepsi geçmeli); tam ifade için çift tırnak
            ("ihtiyaç nedeniyle tahliye"). Yargıtay, emsal ve AYM aramasında başına eksi
-           hariç tutar (-ceza), OR "veya" demektir. Yargıtay ve AYM sonuçları `kaynak`
-           bağlantısı taşır.
+           hariç tutar (-ceza), OR "veya" demektir. Her sonuç kararın resmî sayfasına
+           `kaynak` bağlantısı taşır.
     adet: en çok kaç sonuç (1-50; "adli"de en az 2, iki kaynağa bölünür).
     sayfa: sayfalama (1'den başlar).
     """
@@ -102,7 +107,11 @@ async def karar_getir(karar_id: str, mahkeme: str = "adli") -> dict:
         m, istemci = "yargitay", yargitay
     else:
         m, istemci = _coz(mahkeme)
-    sonuc = await anyio.to_thread.run_sync(partial(istemci.karar, karar_id))
+    anahtar = (m, str(karar_id).strip())        # tam id; "yargitay:" öneki dahil
+    sonuc = karar_onbellegi.al(anahtar)
+    if sonuc is None:
+        sonuc = await anyio.to_thread.run_sync(partial(istemci.karar, karar_id))
+        karar_onbellegi.koy(anahtar, sonuc)
     sonuc["mahkeme_turu"] = m
     return sonuc
 

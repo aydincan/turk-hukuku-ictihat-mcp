@@ -24,16 +24,19 @@ from types import SimpleNamespace
 
 import httpx
 
+from . import ortak
 from .ortak import ve_sorgusu
 
-_UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-       "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36")
 _BASE = "https://kararlarbilgibankasi.anayasa.gov.tr"
 _API = f"{_BASE}/api/core/public/search"
-_HEADERS = {"User-Agent": _UA,
-            "Content-Type": "application/json; charset=utf-8",
-            "Accept": "application/json",
-            "Referer": f"{_BASE}/"}
+_AD = "AYM Kararlar Bilgi Bankası"
+# Kimlik (User-Agent) ortak.istek'te eklenir; tarayıcı taklidi yapan başlık gönderilmez.
+_HEADERS = {"Content-Type": "application/json; charset=utf-8",
+            "Accept": "application/json"}
+# UYARI: KBB'nin belge indirme ucu (PDF/Word), X-Captcha-Verified başlığında captcha'yı
+# geçmiş bir insan kullanıcıyı kanıtlayan bir HMAC bekler. Bu sunucu o HMAC'i ASLA
+# hesaplamaz, üretmez ya da taklit etmez ve indirme ucunu çağırmaz. Tam metin yalnızca
+# arama API'sinin döndürdüğü `icerik` alanından okunur.
 # bağlantı 10 sn, okuma/yazma 30 sn: asılı kalan istek sunucuyu uzun süre meşgul etmesin
 _TIMEOUT = httpx.Timeout(30.0, connect=10.0)
 
@@ -43,9 +46,8 @@ _BASVURU_NO = re.compile(r"(\d{4})/(\d+)")
 
 def _post(payload: dict) -> dict:
     ham = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-    r = httpx.post(_API, content=ham, headers=_HEADERS, timeout=_TIMEOUT)
-    r.raise_for_status()
-    return r.json()
+    return ortak.json_istek("POST", _API, kaynak=_AD, site=_BASE, content=ham,
+                            headers=_HEADERS, timeout=_TIMEOUT)
 
 
 def _duz(s: str) -> str:

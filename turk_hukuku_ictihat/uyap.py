@@ -12,6 +12,10 @@ kararları yargitay.py (Bedesten) üzerinden gelir.
 
 Künye (mahkeme + daire + esas/karar no + tarih) **yapısal** gelir; model numarayı
 metinden ayıklamak ya da hafızadan yazmak zorunda kalmaz.
+
+Kaynak bağlantısı: getDokuman tarayıcıda okunur bir sayfa değil (JSON/XML döner). Emsal
+id'leri Bedesten ile aynı belge kimliği uzayında olduğundan karar, Adalet Bakanlığı'nın
+herkese açık sayfasında okunur biçimde açılır: https://mevzuat.adalet.gov.tr/ictihat/<id>
 """
 from __future__ import annotations
 
@@ -20,18 +24,17 @@ import re
 
 import httpx
 
-from .ortak import erisim_siniri, ve_sorgusu
+from . import ortak
+from .ortak import ve_sorgusu
 
-_UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-       "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36")
 _BASE = "https://emsal.uyap.gov.tr"
+_SAYFA = "https://mevzuat.adalet.gov.tr/ictihat"
 
-_HEADERS = {
-    "User-Agent": _UA,
-    "X-Requested-With": "XMLHttpRequest",
-    "Referer": f"{_BASE}/",
-    "Content-Type": "application/json; charset=UTF-8",
-}
+_AD = "UYAP Emsal"
+# Kimlik (User-Agent) ortak.istek'te eklenir; tarayıcı taklidi yapan başlık gönderilmez.
+# Tarayıcıdaki captcha korumalı /arama adımı çağrılmaz; site doğrulama isterse sunucu
+# durur ve kullanıcıyı resmî siteye yönlendirir (ortak.denetle).
+_HEADERS = {"Content-Type": "application/json; charset=UTF-8"}
 # bağlantı 10 sn, okuma/yazma 30 sn: asılı kalan istek sunucuyu uzun süre meşgul etmesin
 _TIMEOUT = httpx.Timeout(30.0, connect=10.0)
 
@@ -55,10 +58,8 @@ def ara(ifade: str, adet: int = 10, sayfa: int = 1) -> dict:
     sorgu = ve_sorgusu(ifade)   # düz sözcükler VEYA ile aranır; bkz. ortak.py
     govde = {"data": {"aranan": sorgu, "arananKelime": sorgu,
                       "pageSize": adet, "pageNumber": sayfa}}
-    r = httpx.post(f"{_BASE}/aramalist", json=govde, headers=_HEADERS, timeout=_TIMEOUT)
-    erisim_siniri(r, "UYAP Emsal")
-    r.raise_for_status()
-    cevap = r.json()
+    cevap = ortak.json_istek("POST", f"{_BASE}/aramalist", kaynak=_AD, site=_BASE,
+                             json=govde, headers=_HEADERS, timeout=_TIMEOUT)
     if (cevap.get("metadata") or {}).get("FMTY") == "ERROR":
         raise LookupError((cevap["metadata"]).get("FMTE", "UYAP Emsal hatası"))
     govde_veri = cevap.get("data") or {}
@@ -71,6 +72,7 @@ def ara(ifade: str, adet: int = 10, sayfa: int = 1) -> dict:
         "karar_tarihi": k.get("kararTarihi"),
         "durum": k.get("durum"),
         "atif": _atif(k),
+        "kaynak": f"{_SAYFA}/{k.get('id', '')}",
     } for k in kayitlar]
     return {"ifade": ifade, "sayfa": sayfa,
             "toplam": govde_veri.get("recordsTotal", 0), "sonuclar": sonuclar}
@@ -96,16 +98,13 @@ def karar(karar_id: str) -> dict:
     karar_id = str(karar_id).strip()
     if karar_id.lower().startswith("yargitay:"):   # Bedesten ile aynı belge kimliği uzayı
         karar_id = karar_id[len("yargitay:"):]
-    r = httpx.get(f"{_BASE}/getDokuman", params={"id": karar_id},
-                  headers={"User-Agent": _UA, "Referer": f"{_BASE}/"}, timeout=_TIMEOUT)
-    erisim_siniri(r, "UYAP Emsal")
-    r.raise_for_status()
-    cevap = r.json()
+    cevap = ortak.json_istek("GET", f"{_BASE}/getDokuman", kaynak=_AD, site=_BASE,
+                             params={"id": karar_id}, timeout=_TIMEOUT)
     ham = cevap.get("data")
     if not ham:
         raise LookupError(
             f"id={karar_id} için karar metni bulunamadı. id'yi ictihat_ara "
             f"sonucundan alın.")
     metin = _metne_cevir(ham)
-    return {"id": karar_id, "kaynak": f"{_BASE}/getDokuman?id={karar_id}",
+    return {"id": karar_id, "kaynak": f"{_SAYFA}/{karar_id}",
             "uzunluk": len(metin), "metin": metin}

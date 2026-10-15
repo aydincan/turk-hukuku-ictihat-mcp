@@ -17,15 +17,14 @@ import re
 
 import httpx
 
-_UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-       "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36")
+from . import ortak
+
 _BASE = "https://karararama.danistay.gov.tr"
-_HEADERS = {
-    "User-Agent": _UA,
-    "X-Requested-With": "XMLHttpRequest",
-    "Referer": f"{_BASE}/",
-    "Content-Type": "application/json; charset=UTF-8",
-}
+_AD = "Danıştay Karar Arama"
+# Kimlik (User-Agent) ortak.istek'te eklenir; tarayıcı taklidi yapan başlık gönderilmez.
+# Tarayıcıdaki captcha korumalı /arama adımı çağrılmaz; site doğrulama isterse ya da
+# erişimi sınırlarsa (403/429) sunucu durur ve kullanıcıyı resmî siteye yönlendirir.
+_HEADERS = {"Content-Type": "application/json; charset=UTF-8"}
 # bağlantı 10 sn, okuma/yazma 30 sn: asılı kalan istek sunucuyu uzun süre meşgul etmesin
 _TIMEOUT = httpx.Timeout(30.0, connect=10.0)
 
@@ -40,6 +39,11 @@ def _atif(k: dict) -> str:
     return f"{daire}, E.{esas} K.{karar}, T.{tarih}".strip(", ")
 
 
+def _kaynak(karar_id: str) -> str:
+    """Tarayıcıda açılan karar sayfası; arananKelime olmadan site JSON hata döndürür."""
+    return f"{_BASE}/getDokuman?id={karar_id}&arananKelime="
+
+
 def ara(ifade: str, adet: int = 10, sayfa: int = 1) -> dict:
     """Danıştay'da karar arar (idari yargı). Künye listesi + atıf döndürür."""
     adet = max(1, min(adet, 50))
@@ -49,9 +53,8 @@ def ara(ifade: str, adet: int = 10, sayfa: int = 1) -> dict:
     govde = {"data": {"andKelimeler": kelimeler or [ifade], "orKelimeler": [],
                       "notAndKelimeler": [], "notOrKelimeler": [],
                       "pageSize": adet, "pageNumber": sayfa}}
-    r = httpx.post(f"{_BASE}/aramalist", json=govde, headers=_HEADERS, timeout=_TIMEOUT)
-    r.raise_for_status()
-    cevap = r.json()
+    cevap = ortak.json_istek("POST", f"{_BASE}/aramalist", kaynak=_AD, site=_BASE,
+                             json=govde, headers=_HEADERS, timeout=_TIMEOUT)
     if (cevap.get("metadata") or {}).get("FMTY") == "ERROR":
         raise LookupError((cevap["metadata"]).get("FMTE", "Danıştay arama hatası"))
     govde_veri = cevap.get("data") or {}
@@ -67,6 +70,7 @@ def ara(ifade: str, adet: int = 10, sayfa: int = 1) -> dict:
             "karar_tarihi": k.get("kararTarihi"),
             "durum": None,
             "atif": _atif(k),
+            "kaynak": _kaynak(str(k.get("id", ""))),
         })
     return {"ifade": ifade, "sayfa": sayfa,
             "toplam": govde_veri.get("recordsTotal", 0), "sonuclar": sonuclar}
@@ -88,14 +92,15 @@ def _metne_cevir(ham: str) -> str:
 def karar(karar_id: str) -> dict:
     """Bir Danıştay kararının tam metnini çeker (id, ictihat_ara sonucundan gelir)."""
     karar_id = str(karar_id).strip()
-    r = httpx.get(f"{_BASE}/getDokuman", params={"id": karar_id, "arananKelime": ""},
-                  headers={"User-Agent": _UA, "Referer": f"{_BASE}/"}, timeout=_TIMEOUT)
-    r.raise_for_status()
+    # karar sayfası HTML'dir; 403/429, yönlendirme ve captcha yine sert durmadır. Captcha
+    # yalnız yapısal izlerden anlaşılır: bu sözcükleri aktaran bir karar durdurmaz (ortak.py)
+    r = ortak.istek("GET", f"{_BASE}/getDokuman", kaynak=_AD, site=_BASE, beklenen="html",
+                    params={"id": karar_id, "arananKelime": ""}, timeout=_TIMEOUT)
     metin = _metne_cevir(r.text)
     # geçersiz id'de site 200 ile bir hata sayfası döndürür ("Hata! Hata tarafımıza ulaşmış...")
     if not metin or len(metin) < 40 or metin.startswith("Hata!") or "Hata tarafımıza ulaşmış" in metin[:300]:
         raise LookupError(
             f"id={karar_id} için Danıştay karar metni bulunamadı. id'yi ictihat_ara "
             f"(mahkeme='idari') sonucundan alın.")
-    return {"id": karar_id, "kaynak": f"{_BASE}/getDokuman?id={karar_id}",
+    return {"id": karar_id, "kaynak": _kaynak(karar_id),
             "uzunluk": len(metin), "metin": metin}

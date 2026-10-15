@@ -7,9 +7,9 @@ Türk **yargı kararlarını** resmî kaynaktan yapay zekâ araçlarına açan b
 ([AYM Kararlar Bilgi Bankası](https://kararlarbilgibankasi.anayasa.gov.tr)).
 
 Amaç tek cümle: model bir karara atıf yaparken künyeyi (**mahkeme, daire, esas/karar no,
-tarih**) hafızasından değil **resmî kaynaktan** alsın. Künye yapısal döner; Yargıtay ve
-AYM sonuçları kaynak bağlantısı taşır, diğerlerinde bağlantı `karar_getir` ile gelir.
-Model yine de yanılabilir; her künyeyi resmî kaynaktan teyit edin.
+tarih**) hafızasından değil **resmî kaynaktan** alsın. Künye yapısal döner ve her sonuç
+kararın resmî sayfasına bağlantı (`kaynak`) taşır. Model yine de yanılabilir; her künyeyi
+o bağlantıdan teyit edin.
 
 > **Hukuki danışmanlık değildir.** Bu araç içtihada erişimi kolaylaştırır; kararın güncelliğini,
 > kesinleşme durumunu ve somut olaya uygunluğunu siz değerlendirin. Bir kararın bağlayıcılığı
@@ -49,7 +49,8 @@ Tipik akış: `ictihat_ara("ihtiyaç nedeniyle tahliye", mahkeme="yargitay")` �
 `id` seç → `karar_getir(id, mahkeme="yargitay")` → kararın tam metni. Her sonuç hazır bir
 `atif` taşır: *"Yargıtay 6. Hukuk Dairesi, E.2015/2565 K.2016/25, T.18.01.2016"* ·
 *"Danıştay 6. Daire, E.2023/1084 K.2025/10046"* · *"AYM, B. No: 2020/36883, K.T. 16/12/2025"*.
-Yargıtay sonuçları ayrıca kararın herkese açık sayfasını (`kaynak`) verir.
+Her sonuç ayrıca kararın herkese açık sayfasını (`kaynak`) verir; Yargıtay ve UYAP Emsal
+kararları `mevzuat.adalet.gov.tr/ictihat/<id>` adresinde okunur biçimde açılır.
 
 ## Kapsam
 
@@ -61,7 +62,7 @@ Yargıtay sonuçları ayrıca kararın herkese açık sayfasını (`kaynak`) ver
   Emsal. Herkese açık UYAP Emsal Yargıtay kararı içermez.
 - **Adli yargı birlikte** (`mahkeme="adli"`, varsayılan): iki kaynağı aynı anda arar;
   Yargıtay sonuçlarının id'si `yargitay:` önekini taşır.
-- **İdari yargı** (`mahkeme="idari"`): Danıştay kararları (karararama.danistay.gov.tr —
+- **İdari yargı** (`mahkeme="idari"`): Danıştay kararları (karararama.danistay.gov.tr,
   390.000+ doküman).
 - **Anayasa yargısı** (`mahkeme="anayasa"`): AYM bireysel başvuru kararları
   (kararlarbilgibankasi.anayasa.gov.tr).
@@ -76,12 +77,32 @@ Her kaynak bir arama + bir belge uç noktası sunar:
 Bedesten   : POST /emsal-karar/searchDocuments       + POST /emsal-karar/getDocumentContent
 UYAP Emsal : POST /aramalist (aranan)               + GET /getDokuman?id
 Danıştay   : POST /aramalist (andKelimeler[])        + GET /getDokuman?id&arananKelime
-AYM        : POST /api/core/public/search (JSON)     — arama da tam metin de aynı uçtan
+AYM        : POST /api/core/public/search (JSON; arama da tam metin de aynı uçtan)
 ```
 
 Sunucu aramayı yapar, künyeleri yapısal döndürür ve metni okunur düz metne çevirir
 (Danıştay iç içe HTML kodlamasından, AYM Word-export gövdesinden arındırılır). Tamamen
 yereldir; veri toplanmaz.
+
+## Resmî sitelere saygı
+
+- **Kendini tanıtır.** Her istekte kendi User-Agent'ını gönderir:
+  `turk-hukuku-ictihat-mcp/<sürüm> (+https://turk-hukuku.com/mcp/)`. Tarayıcı ya da resmî web
+  uygulaması gibi davranmaz; bu amaçla başlık eklemez.
+- **Site başına sınırlı istek.** Aynı siteye aynı anda tek istek gider ve iki istek arasında
+  en az bir saniye beklenir (site başına yaklaşık saniyede bir istek).
+- **Oturum içi önbellek.** Getirilen kararlar (en çok 256 karar) yalnızca oturum boyunca
+  bellekte tutulur; aynısı yeniden istenince siteye tekrar gidilmez. Diske bir şey yazılmaz.
+- **Captcha çözmez, atlamaz; sınırda durur.** Site doğrulama (captcha) isterse, erişimi
+  reddederse (HTTP 403), erişim sınırı bildirirse (HTTP 429), beklenen veri yerine başka bir
+  sayfaya yönlendirirse ya da bir web sayfası döndürürse sunucu durur, isteği yinelemez ve
+  sizi resmî siteye yönlendirir. O siteye bir süre (yaklaşık iki dakika ya da sitenin
+  bildirdiği süre kadar) yeni istek göndermez. Doğrulama isteği yalnızca sayfadaki doğrulama
+  kutusundan ya da sitenin doğrulama bayrağından anlaşılır; "ben robot değilim" sözünü
+  aktaran bir karar sunucuyu durdurmaz.
+- **Geçici hatalarda kısa bir ileti verir.** Sitede geçici bir arıza (HTTP 5xx), "bulunamadı"
+  yanıtı (HTTP 404) ya da ağ hatası olursa sunucu bunu kısa bir Türkçe iletiyle bildirir ve
+  isteği yinelemez; bu durumda bekleme süresi uygulanmaz.
 
 ## Kurulum
 

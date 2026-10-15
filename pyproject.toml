@@ -1,6 +1,6 @@
 [project]
 name = "turk-hukuku-ictihat-mcp"
-version = "0.5.0"
+version = "0.5.1"
 description = "Türk yargı kararlarını (Yargıtay, Bölge Adliye, Danıştay, AYM) resmî kaynaklardan yapay zekâ araçlarına açan MCP sunucusu."
 readme = "README.md"
 requires-python = ">=3.10"
